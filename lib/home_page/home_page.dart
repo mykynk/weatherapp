@@ -28,12 +28,6 @@ class _HomePageState extends State<HomePage> {
   late WeatherView _weatherView;
   late WeatherModel weatherModel;
   late Position position;
-  var address;
-  @override
-  void initState() {
-    super.initState();
-    getPosition();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +119,6 @@ class _HomePageState extends State<HomePage> {
 
   hours() {
     // localtime is coming "2024-06-08 17:06".
-    //print(_weatherView.location?.localtime);
     int localtime = int.parse(_weatherView.location?.localtime
             ?.substring(11, 13)
             .replaceAll(":", "")
@@ -135,7 +128,7 @@ class _HomePageState extends State<HomePage> {
     int i = 0;
     return Container(
       width: width(context) * 0.85,
-      height: height(context) * 0.15,
+      padding: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
           color: boxColor, borderRadius: BorderRadius.circular(5)),
       child: Column(
@@ -145,7 +138,7 @@ class _HomePageState extends State<HomePage> {
           boxTitle("HOURLY"),
           SizedBox(
             width: width(context) * 0.85,
-            height: height(context) * 0.1,
+            height: 100,
             child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: 24,
@@ -201,7 +194,7 @@ class _HomePageState extends State<HomePage> {
   days() {
     return Container(
       width: width(context) * 0.85,
-      height: height(context) * 0.35,
+      height: 300,
       margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
           color: boxColor, borderRadius: BorderRadius.circular(5)),
@@ -210,9 +203,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           boxTitle("DAYS"),
-          SizedBox(
-            width: width(context) * 0.85,
-            height: height(context) * 0.3,
+          Expanded(
             child: ListView.builder(
                 itemCount: 3,
                 itemBuilder: (context, index) {
@@ -280,6 +271,7 @@ class _HomePageState extends State<HomePage> {
   Widget weatherDetails() {
     return Container(
       width: width(context) * 0.85,
+      margin: EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
           color: boxColor, borderRadius: BorderRadius.circular(5)),
       child: Column(
@@ -357,16 +349,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  void getPosition() async {
-    position = await determinePosition();
-    Coordinates coordinates =
-        Coordinates(position.latitude, position.longitude);
-    address = Geocoder.local.findAddressesFromCoordinates(coordinates);
-  }
 }
-
-//TODO: Karmaşık olan tüm kod parçacıklarına yorum satırıyla açıklama ekle
-//TODO: Readme ekle
-//TODO: Şehir değiştirme özelliği ekle
-//TODO: Şehirler hafızada tutulmalı ve uygulama açıldığında gösterilmeli
