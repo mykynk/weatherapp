@@ -35,6 +35,7 @@ class _CitiesState extends State<Cities> {
   List<WeatherModel> weatherModels = [];
   Box? box;
   List _cities = [];
+  List _cityKeys = [];
   late WeatherView _weatherView;
   late Position position;
   late Address address;
@@ -64,28 +65,29 @@ class _CitiesState extends State<Cities> {
                   ],
                 ),
               ),
-              
-              weatherModels.length == _cities.length
-                  ? Expanded(
-                      child: ListView.builder(
-                        itemCount: weatherModels.length,
-                        itemBuilder: (context, index) {
-                          Current _current = weatherModels[index].current!;
-                          return index == 0 && locationCurrent != null
-                              ? Column(
-                                  children: [
-                                    cityContainer(locationCurrent!,
-                                        isCurrentLocation: true),
-                                    cityItem(index, _current)
-                                  ],
-                                )
-                              : cityItem(index, _current);
-                        },
-                      ),
-                    )
-                  : const CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
+              // Current locaiton
+              locationCurrent != null
+                  ? cityContainer(locationCurrent!, isCurrentLocation: true)
+                  : SizedBox(),
+              // cities
+              Expanded(
+                child: ListView.builder(
+                  itemCount: weatherModels.length,
+                  itemBuilder: (context, index) {
+                    Current _currentCity = weatherModels[index].current!;
+                    return Column(
+                      children: [
+                        // Saved Cities
+                        weatherModels.length == _cities.length
+                            ? cityItem(index, _currentCity)
+                            : const CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                      ],
+                    );
+                  },
+                ),
+              )
             ],
           ),
         ),
@@ -94,18 +96,18 @@ class _CitiesState extends State<Cities> {
     );
   }
 
-  Dismissible cityItem(int index, Current current) {
+  Dismissible cityItem(int index, Current currentCity) {
     return Dismissible(
       onDismissed: (value) => deleteCity(index),
-      key: ValueKey(index),
+      key: _cityKeys[index],
       child: cityContainer(
-        current,
+        currentCity,
         index: index,
       ),
     );
   }
 
-  GestureDetector cityContainer(Current current,
+  GestureDetector cityContainer(Current currentCity,
       {int index = 0, bool isCurrentLocation = false}) {
     return GestureDetector(
       onTap: () => Navigator.pop(
@@ -149,7 +151,7 @@ class _CitiesState extends State<Cities> {
                   width: 10,
                 ),
                 WeatherIcon(
-                  url: "https:" + (current.condition?.icon! ?? ""),
+                  url: "https:" + (currentCity.condition?.icon! ?? ""),
                   color: secondaryColor,
                   width: 50,
                   height: 50,
@@ -160,14 +162,14 @@ class _CitiesState extends State<Cities> {
               width: width(context) * 0.25,
               child: Center(
                 child: Text(
-                  current.condition?.text ?? "",
+                  currentCity.condition?.text ?? "",
                   style: TextStyle(color: Colors.white.withOpacity(0.7)),
                   textAlign: TextAlign.center,
                 ),
               ),
             ),
             Text(
-              current.tempC.toString() + "°",
+              currentCity.tempC.toString() + "°",
               style: TextStyle(color: Colors.white.withOpacity(0.7)),
             ),
           ],
@@ -197,6 +199,7 @@ class _CitiesState extends State<Cities> {
   getCities() async {
     box = Hive.box('testBox');
     _cities = await box!.get('cities');
+    _cities.forEach((value) => _cityKeys.add(ValueKey(value)));
     getWeatherModels();
 
     setState(() {});
@@ -204,6 +207,7 @@ class _CitiesState extends State<Cities> {
 
   addCity(String cityName) async {
     _cities.add(cityName);
+    _cityKeys.add(ValueKey(cityName));
     await box!.put('cities', _cities);
     weatherModels.add(await _weatherView.getData(cityName));
     setState(() {});
@@ -211,6 +215,7 @@ class _CitiesState extends State<Cities> {
 
   deleteCity(int index) async {
     _cities.removeAt(index);
+    _cityKeys.removeAt(index);
     await box!.put('cities', _cities);
     weatherModels.removeAt(index);
 
