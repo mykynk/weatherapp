@@ -15,11 +15,14 @@ void main() async {
   ));
   await Hive.initFlutter();
 
-  Box box = await Hive.openBox('testBox');
-  box.get('cities') ??
-      Hive.box('testBox').put('cities', ['İstanbul', 'Kocaeli']);
-  var cities = box.get('cities');
-  WeatherView().city = cities[0];
+   Hive.openBox('testBox').then((value) {
+    Box box = value;
+    box.get('cities') ??
+        Hive.box('testBox').put('cities', ['İstanbul', 'Kocaeli']);
+    var cities = box.get('cities');
+    WeatherView().city = cities[0];
+  });
+
   runApp(const MyApp());
 }
 
